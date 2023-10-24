@@ -1,0 +1,98 @@
+.ORIG X3000
+LD R4,COMMPOS ;R4=&COMM
+AND R5,R5,#0    ;R5 = CNT = 0
+LEA R1,DEQUE
+LD  R0,BIAS
+ADD R1,R0,R1    ;R1 = A[100]
+ADD R2,R1,#1    ;R2 = A[101]
+
+;INPUT while((temchar=getchar()!='\N') comm[cnt++]=temchar
+INPUT   
+TRAP X20 ;GETCHAR
+TRAP X21 ;PUTCHAR
+LD  R3,NEGLF
+ADD R3,R0,R3
+BRZ INPUTOUT    ;
+STR R0,R4,#0    ;COMM[CNT] = TEMCHAR
+ADD R4,R4,#1    ;P=&COMM,P++ 
+ADD R5,R5,#1    ;CNT++
+BR  INPUT
+
+INPUTOUT
+LD  R4,COMMPOS
+;DEQUE
+WHILE
+    ADD R5,R5,#-1    ;WHILE(CNT--) 
+    BRN DONE
+    
+    LDR R0,R4,#0    ;R0=OP
+    LD  R3,NEG_LEFT_PUSH
+    ADD R3,R0,R3    ;OP == + 
+    BRZ LEFT_PUSH
+    
+    LD  R3,NEG_LEFT_POP
+    ADD R3,R0,R3    ;OP == - 
+    BRZ LEFT_POP
+    
+    LD  R3,NEG_RIGHT_PUSH
+    ADD R3,R0,R3
+    BRZ RIGHT_PUSH  ;OP == [
+    
+    LD  R3,NEG_RIGHT_POP
+    ADD R3,R0,R3
+    BRZ RIGHT_POP   ;OP == ]
+    
+LEFT_PUSH
+    LDR R0,R4,#1    ;R0 = OP
+    ADD R4,R4,#2    ;J+=2
+    STR R0,R1,#0    ;A[LEFTTOP] = OPERAND
+    ADD R1,R1,#-1   ;LEFTTOP--
+    BR  WHILE
+    
+LEFT_POP
+    ADD R4,R4,#1
+    ADD R3,R1,#0
+    NOT R3,R3       
+    ADD R3,R2,R3     ;RIGHTTOP - LEFTTOP == 1 FULL 
+    BRZ POPFAIL
+    ADD R1,R1,#1    ;LEFTTOP++
+    LDR R0,R1,#0    ;
+    TRAP X21        ;PUTCHAR(A[LEFTTOP])
+    BR WHILE
+    
+RIGHT_PUSH
+    LDR R0,R4,#1    ;R0 = OP
+    ADD R4,R4,#2    ;J+=2
+    STR R0,R2,#0    ;A[RIGHTTTOP] = OPERAND
+    ADD R2,R2,#1   ;RIGHTTOP++
+    BR  WHILE
+
+RIGHT_POP
+    ADD R4,R4,#1
+    ADD R3,R1,#0
+    NOT R3,R3       ;R3 = -RIGHTTOP -1 +LEFTOP
+    ADD R3,R2,R3    ;RIGHTTOP - LEFTTOP == 1 FULL 
+    BRZ POPFAIL
+    ADD R2,R2,#-1    ;RIGHTTOP--
+    LDR R0,R2,#0    ;
+    TRAP X21        ;PUTCHAR(A[RIGHTTOP])
+    BR WHILE
+    
+POPFAIL
+    LD  R0,DASH
+    TRAP X21        ;PUTCHAR('_')
+    BR  WHILE
+    
+DONE
+HALT
+DASH            .FILL X005F
+NEG_LEFT_PUSH   .FILL xFFD5 ; + OP
+NEG_LEFT_POP    .FILL xFFD3 ; -
+NEG_RIGHT_PUSH  .FILL xFFA5 ; [OP
+NEG_RIGHT_POP   .FILL xFFA3 ; ]
+NEGLF   .FILL xFFF6
+COMMPOS .FILL   COMM
+BIAS    .FILL   100
+DEQUE   .BLKW   201
+COMM    .BLKW   200
+.END
