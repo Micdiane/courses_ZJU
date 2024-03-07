@@ -1,0 +1,3 @@
+F:/lessons/ComputerNetwork/lab/lab1/Client/cmake-build-debug/CMakeFiles/Client.dir
+F:/lessons/ComputerNetwork/lab/lab1/Client/cmake-build-debug/CMakeFiles/edit_cache.dir
+F:/lessons/ComputerNetwork/lab/lab1/Client/cmake-build-debug/CMakeFiles/rebuild_cache.dir
